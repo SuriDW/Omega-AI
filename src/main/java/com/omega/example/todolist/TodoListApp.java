@@ -324,7 +324,7 @@ public class TodoListApp {
         for (int t = 0; t < idxs.length; t++) {
             testInput.data[t] = idxs[t];
         }
-        testInput.syncDevice();
+        testInput.hostToDevice();
         return testInput;
     }
     
