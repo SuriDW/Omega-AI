@@ -58,10 +58,21 @@ public class TodoListApp {
     
     private List<TodoTask> tasks = new ArrayList<>();
     
+    private boolean cudaAvailable;
+    
     /**
      * Constructor - initializes the UI
      */
     public TodoListApp() {
+        this(false);
+    }
+    
+    /**
+     * Constructor with CUDA availability flag
+     * @param cudaAvailable Whether CUDA is available
+     */
+    public TodoListApp(boolean cudaAvailable) {
+        this.cudaAvailable = cudaAvailable;
         initializeUI();
     }
     
@@ -186,6 +197,12 @@ public class TodoListApp {
             return;
         }
         
+        if (!cudaAvailable) {
+            llmOutputArea.setText("LLM functionality is disabled because CUDA is not available on this system.\n\n" +
+                                 "Your tasks:\n" + formatTaskList());
+            return;
+        }
+        
         if (!llmInitialized) {
             initializeLLM();
         }
@@ -197,9 +214,7 @@ public class TodoListApp {
         
         StringBuilder taskListStr = new StringBuilder();
         taskListStr.append("Here are my tasks:\n");
-        for (int i = 0; i < tasks.size(); i++) {
-            taskListStr.append((i + 1) + ". " + tasks.get(i).getText() + "\n");
-        }
+        taskListStr.append(formatTaskList());
         taskListStr.append("\nPlease analyze these tasks and suggest prioritization, categorization, or any insights:");
         
         String llmResponse = processWithLLM(taskListStr.toString());
@@ -207,12 +222,27 @@ public class TodoListApp {
     }
     
     /**
+     * Format the task list as a numbered list
+     * @return Formatted task list string
+     */
+    private String formatTaskList() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < tasks.size(); i++) {
+            sb.append((i + 1) + ". " + tasks.get(i).getText() + "\n");
+        }
+        return sb.toString();
+    }
+    
+    /**
      * Initialize the LLM components
      */
     private void initializeLLM() {
+        if (!cudaAvailable) {
+            llmOutputArea.setText("LLM functionality is disabled because CUDA is not available on this system.");
+            return;
+        }
+        
         try {
-            CUDAModules.initContext();
-            
             boolean bias = false;
             boolean dropout = false;
             boolean flashAttention = false;
